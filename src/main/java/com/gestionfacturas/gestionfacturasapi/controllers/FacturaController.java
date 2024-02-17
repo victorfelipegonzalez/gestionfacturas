@@ -9,8 +9,6 @@ import com.gestionfacturas.gestionfacturasapi.reports.EstadisticasFacturaReport;
 import com.gestionfacturas.gestionfacturasapi.reports.FacturaReport;
 import com.gestionfacturas.gestionfacturasapi.repositories.FacturaRepository;
 import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperReport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +20,6 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/facturas")
@@ -99,47 +95,6 @@ public class FacturaController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/clientes/{id_empresa}/{id_cliente}")
-    public ResponseEntity<ResponseModel> obtenerListaFacturaCliente(@PathVariable Long id_empresa,@PathVariable Long id_cliente){
-        var response = new ResponseModel();
-        var listaFacturas = new ArrayList<FacturaModel>();
-        if (initDBConnection()){
-            try{
-                String query ="SELECT factura.id_factura,factura.fecha FROM factura\n" +
-                        "INNER JOIN empleadoclientefactura e on factura.id_factura = e.id_factura\n" +
-                        "INNER JOIN empleado e2 on e2.id_empleado = e.id_empleado\n" +
-                        "WHERE e.id_cliente = ? and e2.id_empresa = ?;";
-                PreparedStatement statement = connection.prepareStatement(query);
-                statement.setLong(1,id_cliente);
-                statement.setLong(2,id_empresa);
-                var result = statement.executeQuery();
-                while (result.next()){
-                    var factura = new FacturaModel();
-                    factura.setId_factura(result.getLong(1));
-                    factura.setFecha(result.getDate(2));
-                    listaFacturas.add(factura);
-                }
-
-            }catch (SQLException e){
-                response.setSuccess(1);
-                response.setMessage("Error en la base de datos");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-            }finally {
-                closeDBConnection();
-            }
-            if (!listaFacturas.isEmpty()){
-                response.setSuccess(0);
-                response.setMessage("Lista de facturas encontrada");
-                response.setData(listaFacturas);
-            }else {
-                response.setSuccess(1);
-                response.setMessage("No se encontraron facturas");
-                response.setData(listaFacturas);
-            }
-
-        }
-        return ResponseEntity.ok(response);
-    }
-    @GetMapping("/clientess/{id_empresa}/{id_cliente}")
     public ResponseEntity<ResponseModel> obtenerListaFacturaClienteB(@PathVariable Long id_empresa,@PathVariable Long id_cliente){
         var response = new ResponseModel();
         var listaFacturas = new ArrayList<FacturaModel>();
@@ -213,6 +168,7 @@ public class FacturaController {
         }
         return ResponseEntity.ok(response);
     }
+    // Método para generar una FacturaPDF
     @GetMapping("/informes/{id_factura}")
     public ResponseEntity<ResponseModel> generarInformeFactura(@PathVariable long id_factura){
             var response = new ResponseModel();
@@ -240,6 +196,7 @@ public class FacturaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+    // Método para generar un informe de facturas en PDF
     @GetMapping("/estadisticasfacturas/{id_empresa}")
     public ResponseEntity<ResponseModel> generarInformeEstadisticas(@PathVariable long id_empresa){
         var response = new ResponseModel();
@@ -267,6 +224,7 @@ public class FacturaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+    // Método para generar un informe de facturas por años en PDF
     @GetMapping("/aniosfacturas/{id_empresa}")
     public ResponseEntity<ResponseModel> listaAniosFacturas(@PathVariable long id_empresa){
         var response = new ResponseModel();
@@ -302,6 +260,7 @@ public class FacturaController {
         }
         return ResponseEntity.ok(response);
     }
+    // Método para generar un informe de facturas en un año en PDF
     @GetMapping("/estadisticasanuales/{id_empresa}/{anio}")
     public ResponseEntity<ResponseModel> generarInformeEstadisticasAnuales(@PathVariable long id_empresa,@PathVariable int anio){
         var response = new ResponseModel();
@@ -329,6 +288,7 @@ public class FacturaController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+    // Método para generar un informe de facturas de clientes en PDF
     @GetMapping("/estadisticasanualesclientes/{id_empresa}/{anio}")
     public ResponseEntity<ResponseModel> generarInformeEstadisticasAnualesClientes(@PathVariable long id_empresa,@PathVariable int anio){
         var response = new ResponseModel();

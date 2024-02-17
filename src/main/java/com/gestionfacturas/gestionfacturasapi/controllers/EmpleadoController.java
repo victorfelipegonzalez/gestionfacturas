@@ -83,6 +83,7 @@ public class EmpleadoController {
         return ResponseEntity.ok(response);
     }
 
+    // Método para obtener todos los empleados
     @GetMapping("/all/{id_empresa}")
     public ResponseEntity<ResponseModel> obtenerTodosLosEmpleados(@PathVariable long id_empresa) {
         Optional<ArrayList<EmpleadoModel>> empleadoOptional = empleadoRepository.findById_empresa(id_empresa);
@@ -99,22 +100,29 @@ public class EmpleadoController {
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
+    // Método para obetener un empleado por su correo electronico
     @GetMapping("/buscarCorreo/{correoEmpleado}")
     public ResponseEntity<ResponseModel> obtenerEmpleadoPorCorreo(@PathVariable String correoEmpleado) {
-        Optional<EmpleadoModel> empleadoOptional = empleadoRepository.findByCorreo(correoEmpleado);
         var response = new ResponseModel();
-
-        if (empleadoOptional.isPresent()) {
-            response.setSuccess(0);
-            response.setMessage("Empleado encontrado");
-            response.setData(empleadoOptional.get());
-        } else {
+        try{
+            Optional<EmpleadoModel> empleadoOptional = empleadoRepository.findByCorreo(correoEmpleado);
+            if (empleadoOptional.isPresent()) {
+                response.setSuccess(0);
+                response.setMessage("Empleado encontrado");
+                response.setData(empleadoOptional.get());
+            } else {
+                response.setSuccess(1);
+                response.setMessage("Empleado no encontrado");
+            }
+        }catch (Exception e){
             response.setSuccess(1);
-            response.setMessage("Empleado no encontrado");
+            response.setMessage("Empleado no asociado \na ninguna empresa");
         }
+
 
         return ResponseEntity.ok(response);
     }
+    // Método para asociar un empleado a una empresa
     @Transactional
     @PostMapping("/actualizarEmpleado")
     public ResponseEntity<ResponseModel> actualizarEmpleado(@RequestBody EmpleadoModel empleadoActualizado){
