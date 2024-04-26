@@ -39,6 +39,7 @@ public class EmailService {
         return send;
     }
 
+
     public boolean sendBill(ClienteModel cliente, byte[] pdfBytes){
         String subject = "Factura de trabajos realizados";
         String contenido = "<html><body>" +
