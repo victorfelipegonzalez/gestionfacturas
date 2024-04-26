@@ -34,6 +34,11 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- Dependencia para enviar emails desde spring boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
         <!-- Dependencia de Spring Boot Starter Data JPA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
