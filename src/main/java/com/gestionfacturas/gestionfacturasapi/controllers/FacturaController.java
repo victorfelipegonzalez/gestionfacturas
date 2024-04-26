@@ -1,13 +1,16 @@
 package com.gestionfacturas.gestionfacturasapi.controllers;
 
 import com.gestionfacturas.gestionfacturasapi.database.SQLDatabaseManager;
+import com.gestionfacturas.gestionfacturasapi.models.ClienteModel;
 import com.gestionfacturas.gestionfacturasapi.models.FacturaModel;
 import com.gestionfacturas.gestionfacturasapi.models.ResponseModel;
 import com.gestionfacturas.gestionfacturasapi.reports.EstadisticaAnualReport;
 import com.gestionfacturas.gestionfacturasapi.reports.EstadisticasAnualClientesReport;
 import com.gestionfacturas.gestionfacturasapi.reports.EstadisticasFacturaReport;
 import com.gestionfacturas.gestionfacturasapi.reports.FacturaReport;
+import com.gestionfacturas.gestionfacturasapi.repositories.ClienteRepository;
 import com.gestionfacturas.gestionfacturasapi.repositories.FacturaRepository;
+import com.gestionfacturas.gestionfacturasapi.services.EmailService;
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +29,10 @@ import java.util.Base64;
 public class FacturaController {
     @Autowired
     FacturaRepository facturaRepository;
+    @Autowired
+    ClienteRepository clienteRepository;
+    @Autowired
+    EmailService emailService;
     private Connection connection;
     private boolean initDBConnection(){
         try {
@@ -78,6 +85,9 @@ public class FacturaController {
                     statementFacturaCliente.executeUpdate();
                     response.setSuccess(0);
                     response.setMessage("Factura creada con éxito");
+                    ClienteModel cliente = clienteRepository.findById_cliente(nuevaFactura.getId_cliente());
+                    byte[] pdfBytes = FacturaReport.generarFactura(numFactura);
+                    emailService.sendBill(cliente,pdfBytes);
                 }else{
                     response.setSuccess(1);
                     response.setMessage("Error al crear Factura");
@@ -87,7 +97,9 @@ public class FacturaController {
                 response.setSuccess(1);
                 response.setMessage(e.getMessage());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-            }finally {
+            } catch (JRException e) {
+
+            } finally {
                 closeDBConnection();
             }
 
