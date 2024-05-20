@@ -99,5 +99,89 @@ public class EmpresaController {
         }
         return ResponseEntity.ok(response);
     }
-
+    @GetMapping("/{id_empresa}")
+    public ResponseEntity<ResponseModel> obtenerEmpresa(@PathVariable long id_empresa){
+        var response = new ResponseModel();
+        var empresa = new EmpresaModel();
+        if(initDBConnection()){
+            String query = "SELECT * FROM empresa WHERE id_empresa = "+id_empresa;
+            try {
+                PreparedStatement statement = connection.prepareStatement(query);
+                ResultSet resultSet = statement.executeQuery();
+                if(resultSet.next()){
+                    empresa.setId_empresa(resultSet.getLong("id_empresa"));
+                    empresa.setNombre_empresa(resultSet.getString("nombre_empresa"));
+                    empresa.setNif_empresa(resultSet.getString("nif_empresa"));
+                    empresa.setTelefono_empresa(resultSet.getInt("telefono_empresa"));
+                    empresa.setCorreo(resultSet.getString("correo"));
+                    empresa.setDireccion_empresa(resultSet.getString("direccion_empresa"));
+                    empresa.setCp_empresa(resultSet.getInt("cp_empresa"));
+                    empresa.setCiudad_empresa(resultSet.getString("ciudad_empresa"));
+                    empresa.setPais_empresa(resultSet.getString("pais_empresa"));
+                    response.setSuccess(0);
+                    response.setData(empresa);
+                }
+            } catch (SQLException e) {
+                response.setSuccess(1);
+                response.setMessage(e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }finally {
+                closeDBConnection();
+            }
+        }
+        return ResponseEntity.ok(response);
+    }
+    @Transactional
+    @PutMapping()
+    public ResponseEntity<ResponseModel> actualizarEmpresa(@RequestBody EmpresaModel empresaModel){
+        var response = new ResponseModel();
+        if(initDBConnection()){
+            String query = "{call actualizar_empresa(?,?,?,?,?,?,?,?,?)}";
+            try {
+                CallableStatement statement = connection.prepareCall(query);
+                statement.setLong(1,empresaModel.getId_empresa());
+                statement.setString(2,empresaModel.getNombre_empresa());
+                statement.setString(3,empresaModel.getNif_empresa());
+                statement.setInt(4,empresaModel.getTelefono_empresa());
+                statement.setString(5,empresaModel.getCorreo());
+                statement.setString(6,empresaModel.getDireccion_empresa());
+                statement.setInt(7,empresaModel.getCp_empresa());
+                statement.setString(8,empresaModel.getCiudad_empresa());
+                statement.setString(9,empresaModel.getPais_empresa());
+                boolean hasResults = statement.execute();
+                if (hasResults) {
+                    ResultSet resultSet = statement.getResultSet();
+                    EmpresaModel empresa = new EmpresaModel();
+                    while (resultSet.next()) {
+                        empresa.setId_empresa(resultSet.getLong("id_empresa"));
+                        empresa.setNombre_empresa(resultSet.getString("nombre_empresa"));
+                        empresa.setNif_empresa(resultSet.getString("nif_empresa"));
+                        empresa.setTelefono_empresa(resultSet.getInt("telefono_empresa"));
+                        empresa.setCorreo(resultSet.getString("correo"));
+                        empresa.setDireccion_empresa(resultSet.getString("direccion_empresa"));
+                        empresa.setCp_empresa(resultSet.getInt("cp_empresa"));
+                        empresa.setCiudad_empresa(resultSet.getString("ciudad_empresa"));
+                        empresa.setPais_empresa(resultSet.getString("pais_empresa"));
+                        boolean esActualizado = resultSet.getBoolean("es_actualizado");
+                        if (esActualizado) {
+                            response.setSuccess(0);
+                            response.setData(empresa);
+                            response.setMessage("Datos actualizada");
+                        } else {
+                            response.setSuccess(1);
+                            response.setData(empresaModel);
+                            response.setMessage("Error de actualización");
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                response.setSuccess(2);
+                response.setMessage(e.getMessage());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }finally {
+                closeDBConnection();
+            }
+        }
+        return ResponseEntity.ok(response);
+    }
 }
