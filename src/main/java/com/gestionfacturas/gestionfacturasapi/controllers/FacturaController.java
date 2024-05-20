@@ -11,6 +11,7 @@ import com.gestionfacturas.gestionfacturasapi.reports.FacturaReport;
 import com.gestionfacturas.gestionfacturasapi.repositories.ClienteRepository;
 import com.gestionfacturas.gestionfacturasapi.repositories.FacturaRepository;
 import com.gestionfacturas.gestionfacturasapi.services.EmailService;
+import lombok.RequiredArgsConstructor;
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,14 +26,15 @@ import java.util.ArrayList;
 import java.util.Base64;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/facturas")
 public class FacturaController {
-    @Autowired
-    FacturaRepository facturaRepository;
-    @Autowired
-    ClienteRepository clienteRepository;
-    @Autowired
-    EmailService emailService;
+
+    private final FacturaRepository facturaRepository;
+
+    private final ClienteRepository clienteRepository;
+
+    private final EmailService emailService;
     private Connection connection;
     private boolean initDBConnection(){
         try {
@@ -87,7 +89,7 @@ public class FacturaController {
                     response.setMessage("Factura creada con éxito");
                     ClienteModel cliente = clienteRepository.findById_cliente(nuevaFactura.getId_cliente());
                     byte[] pdfBytes = FacturaReport.generarFactura(numFactura);
-                    emailService.sendBill(cliente,pdfBytes);
+                    //emailService.sendBill(cliente,pdfBytes);
                 }else{
                     response.setSuccess(1);
                     response.setMessage("Error al crear Factura");

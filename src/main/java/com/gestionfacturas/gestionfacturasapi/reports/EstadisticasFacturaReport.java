@@ -22,7 +22,7 @@ public class EstadisticasFacturaReport {
             JasperReport informe = (JasperReport) JRLoader.loadObjectFromFile(RUTA);
 
             Class.forName("org.postgresql.Driver");
-            Connection connection =(Connection) DriverManager.getConnection ("jdbc:postgresql://localhost:5432/Test", "postgres", "admin");
+            Connection connection =(Connection) DriverManager.getConnection ("jdbc:postgresql://localhost:5432/gestionfacturas", "postgres", "admin");
 
             // Crear un objeto Map para pasar parámetros al informe
             Map<String, Object> parametrosReporte = new HashMap<>();

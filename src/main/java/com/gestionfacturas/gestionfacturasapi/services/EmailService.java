@@ -3,6 +3,7 @@ package com.gestionfacturas.gestionfacturasapi.services;
 import com.gestionfacturas.gestionfacturasapi.models.ClienteModel;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +14,11 @@ import org.springframework.stereotype.Service;
 
 
 @Service
+@RequiredArgsConstructor
 public class EmailService {
     private static final Logger LOGGER = LoggerFactory.getLogger(EmailService.class);
-    @Autowired
-    private JavaMailSender sender;
+
+    private final JavaMailSender sender;
 
     private boolean sendEmail(String email, String subject, String textMessage,byte[] pdfBytes){
         boolean send = false;
@@ -25,7 +27,7 @@ public class EmailService {
         try{
             helper = new MimeMessageHelper(message,true);
             helper.setTo(email);
-            helper.setText(textMessage);
+            helper.setText(textMessage, true);
             helper.setSubject(subject);
 
             helper.addAttachment("factura.pdf", new ByteArrayResource(pdfBytes));

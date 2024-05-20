@@ -98,4 +98,42 @@ public class ClienteController {
             }
             return ResponseEntity.ok(response);
     }
+    @Transactional
+    @PostMapping("/actualizar")
+    public ResponseEntity<ResponseModel> actualizarCliente(@RequestBody ClienteModel clienteActualizado){
+        var response = new ResponseModel();
+        if(initDBConnection()){
+            try{
+                if(clienteRepository.existsByCorreoClienteAndIdClienteNot(clienteActualizado.getCorreo_cliente(), clienteActualizado.getId_cliente())){
+                    response.setMessage("Correo ya registrado");
+                    response.setSuccess(2);
+                } else if (clienteRepository.existsByNifClienteAndIdClienteNot(clienteActualizado.getNif_cliente(),clienteActualizado.getId_cliente())) {
+                    response.setMessage("Nif ya registrado");
+                    response.setSuccess(3);
+                }else {
+                    clienteRepository.actualizarCliente(
+                            clienteActualizado.getId_cliente(),
+                            clienteActualizado.getNombre_cliente(),
+                            clienteActualizado.getNif_cliente(),
+                            clienteActualizado.getTelefono_cliente(),
+                            clienteActualizado.getDireccion_cliente(),
+                            clienteActualizado.getCiudad_cliente(),
+                            clienteActualizado.getCp_cliente(),
+                            clienteActualizado.getPais_cliente(),
+                            clienteActualizado.getCorreo_cliente());
+                    response.setMessage("Cliente actualizado");
+                    response.setSuccess(0);
+                }
+
+            }catch (Exception e){
+                response.setMessage("Error al actualizar cliente");
+                response.setSuccess(1);
+            }
+
+        }else {
+            response.setSuccess(1);
+            response.setMessage("Error al conectar con la base de datos");
+        }
+        return ResponseEntity.ok(response);
+    }
 }
