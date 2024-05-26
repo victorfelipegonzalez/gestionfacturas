@@ -23,6 +23,8 @@ public class EmpresaModel {
     @Column(unique = true)
     private String correo;
     private String nombreJefe;
+    private String pwd;
+    private String correoJefe;
 
 
 }

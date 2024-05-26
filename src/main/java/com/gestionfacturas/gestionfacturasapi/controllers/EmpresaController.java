@@ -7,6 +7,7 @@ import com.gestionfacturas.gestionfacturasapi.repositories.EmpresaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,9 +61,11 @@ public class EmpresaController {
     public ResponseEntity<ResponseModel> insertarEmpresa(@RequestBody EmpresaModel nuevaEmpresa) {
         var response = new ResponseModel();
         if (initDBConnection()){
-            String query = "{? = call crear_empresa(?,?,?,?,?,?,?,?,?)}";
+            String query = "{? = call crear_empresa(?,?,?,?,?,?,?,?,?,?,?)}";
             int resultado;
             try {
+                BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+                String pwd = passwordEncoder.encode(nuevaEmpresa.getPwd());
                 CallableStatement statement = connection.prepareCall(query);
                 statement.registerOutParameter(1, Types.INTEGER);
                 statement.setString(2,nuevaEmpresa.getNombre_empresa());
@@ -74,6 +77,8 @@ public class EmpresaController {
                 statement.setInt(8,nuevaEmpresa.getCp_empresa());
                 statement.setString(9,nuevaEmpresa.getCorreo());
                 statement.setString(10,nuevaEmpresa.getNombreJefe());
+                statement.setString(11,pwd);
+                statement.setString(12,nuevaEmpresa.getCorreoJefe());
                 statement.execute();
                 resultado = statement.getInt(1);
             } catch (SQLException e) {

@@ -4,11 +4,13 @@ import com.gestionfacturas.gestionfacturasapi.database.SQLDatabaseManager;
 import com.gestionfacturas.gestionfacturasapi.models.EmpleadoModel;
 import com.gestionfacturas.gestionfacturasapi.models.ResponseModel;
 import com.gestionfacturas.gestionfacturasapi.repositories.EmpleadoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -17,11 +19,13 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/empleados")
 public class EmpleadoController {
-    @Autowired
-    private EmpleadoRepository empleadoRepository;
+
+    private final EmpleadoRepository empleadoRepository;
     private Connection connection;
+    private BCryptPasswordEncoder passwordEncoder;
 
     private boolean initDBConnection(){
         try {
@@ -48,14 +52,17 @@ public class EmpleadoController {
     public ResponseEntity<ResponseModel> insertarEmpleado(@RequestBody EmpleadoModel nuevoEmpleado) {
         var response = new ResponseModel();
         if(initDBConnection()){
-            String query="{? = call crear_empleado_inicial(?,?,?)}";
+            String query="{? = call crear_empleado_inicial(?,?,?,?)}";
             int resultado;
             try {
+                passwordEncoder = new BCryptPasswordEncoder();
+                String pwd = passwordEncoder.encode(nuevoEmpleado.getPassword());
                 CallableStatement statement = connection.prepareCall(query);
                 statement.registerOutParameter(1, Types.INTEGER);
                 statement.setString(2,nuevoEmpleado.getNombre_empleado());
                 statement.setString(3,nuevoEmpleado.getCorreo());
                 statement.setString(4,nuevoEmpleado.getTipo_empleado());
+                statement.setString(5,pwd);
                 statement.execute();
                 resultado = statement.getInt(1);
             } catch (SQLException e) {
@@ -165,4 +172,29 @@ public class EmpleadoController {
         }
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/login/{email}/{pwd}")
+    public ResponseEntity<ResponseModel> login(@PathVariable String email,@PathVariable String pwd){
+        var response = new ResponseModel();
+        Optional<EmpleadoModel> empleado = empleadoRepository.findByCorreo(email);
+        if(empleado.isPresent()){
+            EmpleadoModel empleadoModel = empleado.get();
+            passwordEncoder = new BCryptPasswordEncoder();
+            if(passwordEncoder.matches(pwd,empleadoModel.getPassword())){
+                response.setSuccess(0);
+                response.setMessage("Login OK");
+                response.setData(empleadoModel);
+            }else{
+                response.setSuccess(1);
+                response.setMessage("Contraseña incorrecta");
+                response.setData("");
+            }
+        }else{
+            response.setSuccess(1);
+            response.setMessage("Correo eléctronico incorrecto");
+            response.setData("");
+        }
+        return ResponseEntity.ok(response);
+    }
+
 }

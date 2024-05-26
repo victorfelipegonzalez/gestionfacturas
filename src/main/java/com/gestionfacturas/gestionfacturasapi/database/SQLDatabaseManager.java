@@ -1,13 +1,12 @@
 package com.gestionfacturas.gestionfacturasapi.database;
 
-import javax.swing.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class SQLDatabaseManager {
     // Variables de configuración para la conexión a la base de datos PostgreSQL
-    private static final String JDBC_URL = "jdbc:postgresql://localhost:5432/gestionfacturas";
+    private static final String JDBC_URL = "jdbc:postgresql://localhost:5432/Testgestionfacturas";
     private static final String USER = "postgres";
     private static final String PASSWORD = "admin";
 

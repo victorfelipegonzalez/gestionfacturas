@@ -15,4 +15,5 @@ public class EmpleadoModel {
     private String  correo;
     private String tipo_empleado;
     public long id_empresa;
+    private String password;
 }
